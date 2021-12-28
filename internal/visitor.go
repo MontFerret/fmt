@@ -213,8 +213,7 @@ func (v *Visitor) EnterArrayLiteral(c *fql.ArrayLiteralContext) {
 }
 
 func (v *Visitor) EnterObjectLiteral(c *fql.ObjectLiteralContext) {
-	//TODO implement me
-
+	v.writer.StartObject()
 }
 
 func (v *Visitor) EnterBooleanLiteral(c *fql.BooleanLiteralContext) {
@@ -238,8 +237,21 @@ func (v *Visitor) EnterNoneLiteral(c *fql.NoneLiteralContext) {
 }
 
 func (v *Visitor) EnterPropertyAssignment(c *fql.PropertyAssignmentContext) {
-	//TODO implement me
+	var name string
+	var isShorthand bool
 
+	if prop := c.PropertyName(); prop != nil {
+		name = prop.GetText()
+	} else if computed := c.ComputedPropertyName(); computed != nil {
+		name = computed.GetText()
+	} else if variable := c.Variable(); variable != nil {
+		name = variable.GetText()
+		isShorthand = true
+	} else {
+		name = c.GetText()
+	}
+
+	v.writer.StartPropertyAssignment(name, isShorthand)
 }
 
 func (v *Visitor) EnterComputedPropertyName(c *fql.ComputedPropertyNameContext) {
@@ -558,8 +570,7 @@ func (v *Visitor) ExitArrayLiteral(c *fql.ArrayLiteralContext) {
 }
 
 func (v *Visitor) ExitObjectLiteral(c *fql.ObjectLiteralContext) {
-	//TODO implement me
-
+	v.writer.EndObject()
 }
 
 func (v *Visitor) ExitBooleanLiteral(c *fql.BooleanLiteralContext) {
@@ -588,8 +599,7 @@ func (v *Visitor) ExitNoneLiteral(c *fql.NoneLiteralContext) {
 }
 
 func (v *Visitor) ExitPropertyAssignment(c *fql.PropertyAssignmentContext) {
-	//TODO implement me
-
+	v.writer.EndPropertyAssignment()
 }
 
 func (v *Visitor) ExitComputedPropertyName(c *fql.ComputedPropertyNameContext) {

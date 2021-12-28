@@ -26,6 +26,8 @@ const (
 
 	Dot = StringToken(".")
 
+	Colon = StringToken(":")
+
 	SBracketOpen = StringToken("[")
 
 	SBracketClose = StringToken("]")

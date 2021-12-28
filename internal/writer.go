@@ -20,13 +20,49 @@ func NewWriter(opts core.Options) *Writer {
 
 func (w *Writer) StartArray() *Writer {
 	w.out.StartScope(scopes.NewArrayScope(
-		w.opts.PrintWidth,
+		scopes.Options{
+			MaxLineLen: w.opts.PrintWidth,
+		},
 	))
 
 	return w
 }
 
 func (w *Writer) EndArray() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartObject() *Writer {
+	w.out.StartScope(scopes.NewObjectScope(
+		scopes.Options{
+			MaxLineLen: w.opts.PrintWidth,
+		},
+	))
+
+	return w
+}
+
+func (w *Writer) EndObject() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartPropertyAssignment(name string, isShorthand bool) *Writer {
+	w.out.StartScope(scopes.NewPropertyAssignmentScope(
+		scopes.Options{
+			MaxLineLen: w.opts.PrintWidth,
+		},
+		name,
+		isShorthand,
+	))
+
+	return w
+}
+
+func (w *Writer) EndPropertyAssignment() *Writer {
 	w.out.EndScope()
 
 	return w
@@ -47,7 +83,6 @@ func (w *Writer) EndUse() *Writer {
 func (w *Writer) StartVariableDeclaration(keyword, name string) *Writer {
 	w.
 		out.
-		NewLine().
 		WriteKeyword(keyword).
 		WriteWhiteSpace().
 		WriteAs(name).
