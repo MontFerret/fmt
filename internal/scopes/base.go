@@ -1,58 +1,21 @@
 package scopes
 
-import "bytes"
+import "github.com/MontFerret/fmt/internal/core"
 
 type (
-	ScopeItem interface {
-		String() string
+	tokenToOutput struct {
+		token core.Token
 	}
 
-	Scope interface {
-		Start() Scope
-		Write(item ScopeItem) Scope
-		End() Scope
-		String() string
-	}
-
-	Factory func(out *bytes.Buffer) Scope
-
-	BaseScopeItem string
-
-	BaseScope struct {
-		out   *bytes.Buffer
-		items []ScopeItem
+	scopeToOutput struct {
+		scope core.Scope
 	}
 )
 
-func NewBaseScopeItem(value string) ScopeItem {
-	return BaseScopeItem(value)
+func (t *tokenToOutput) WriteTo(output core.Output) {
+	output.Write(t.token)
 }
 
-func (b BaseScopeItem) String() string {
-	return string(b)
-}
-
-func newBaseScope(out *bytes.Buffer) *BaseScope {
-	return &BaseScope{
-		out:   out,
-		items: make([]ScopeItem, 0, 20),
-	}
-}
-
-func (s *BaseScope) Start() Scope {
-	return s
-}
-
-func (s *BaseScope) Write(item ScopeItem) Scope {
-	s.items = append(s.items, item)
-
-	return s
-}
-
-func (s *BaseScope) End() Scope {
-	return s
-}
-
-func (s *BaseScope) String() string {
-	return s.out.String()
+func (t *scopeToOutput) WriteTo(output core.Output) {
+	t.scope.Read(output)
 }

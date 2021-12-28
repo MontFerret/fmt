@@ -1,196 +1,97 @@
 package internal
 
 import (
-	"bytes"
-	"strings"
-
+	"github.com/MontFerret/fmt/internal/core"
 	"github.com/MontFerret/fmt/internal/scopes"
-)
-
-const (
-	SingleQuote       = "'"
-	DoubleQuote       = "\""
-	EscapeSingleQuote = "\\'"
-	EscapeDoubleQuote = "\\\""
+	"strings"
 )
 
 type Writer struct {
-	opts  *Options
-	buf   *bytes.Buffer
-	lines uint64
-	chars uint64
-	scope scopes.Scope
+	opts core.Options
+	out  core.Output
 }
 
-func NewWriter(opts *Options) *Writer {
+func NewWriter(opts core.Options) *Writer {
 	return &Writer{
 		opts: opts,
-		buf:  &bytes.Buffer{},
+		out:  core.NewOutput(&strings.Builder{}, opts),
 	}
 }
 
-func (w *Writer) StartScope() {}
-
-func (w *Writer) EndScope() {}
-
 func (w *Writer) StartArray() *Writer {
-	return w.startScope(func(out *bytes.Buffer) scopes.Scope {
-		return scopes.NewArrayScope(out, w.opts.BracketSpacing)
-	})
+	w.out.StartScope(scopes.NewArrayScope(
+		w.opts.PrintWidth,
+	))
+
+	return w
 }
 
 func (w *Writer) EndArray() *Writer {
-	return w.endScope()
+	w.out.EndScope()
+
+	return w
 }
 
-func (w *Writer) StartObject() *Writer {
-	return w.startScope(func(out *bytes.Buffer) scopes.Scope {
-		return scopes.NewObjectScope(out, w.opts.BracketSpacing)
-	})
+func (w *Writer) StartUse(keyword, namespace string) *Writer {
+	w.out.WriteKeyword(keyword).WriteWhiteSpace().Write(core.StringToken(namespace))
+
+	return w
 }
 
-func (w *Writer) EndObject() *Writer {
-	return w.endScope()
+func (w *Writer) EndUse() *Writer {
+	w.out.NewLine()
+
+	return w
 }
 
-func (w *Writer) WritePropertyName(input string, isShorthand bool) *Writer {
-	return w.writeToken(scopes.NewObjectScopeItem(input, isShorthand))
-}
-
-func (w *Writer) WriteBoolean(input string) *Writer {
-	return w.Write(input)
-}
-
-func (w *Writer) WriteString(input string) *Writer {
-	var targetQuote string
-	var currentEscape string
-	var targetEscape string
-
-	if w.opts.SingleQuote {
-		targetQuote = SingleQuote
-		targetEscape = EscapeSingleQuote
-		currentEscape = EscapeDoubleQuote
-	} else {
-		targetQuote = DoubleQuote
-		targetEscape = EscapeDoubleQuote
-		currentEscape = EscapeSingleQuote
-	}
-
-	b := []rune(input)
-
-	// TODO: Use regexp
-	// Replace opening and closing quotes
-	result := targetQuote + string(b[1:len(b)-1]) + targetQuote
-	// Remove redundant escapes
-	result = strings.ReplaceAll(result, targetEscape, "")
-	// Replace nested escapes
-	result = strings.ReplaceAll(result, currentEscape, targetEscape)
-
-	return w.Write(result)
-}
-
-func (w *Writer) WriteInteger(input string) *Writer {
-	return w.Write(input)
-}
-
-func (w *Writer) WriteFloat(input string) *Writer {
-	return w.Write(input)
-}
-
-func (w *Writer) WriteNone(input string) *Writer {
-	return w.Write(input)
-}
-
-func (w *Writer) WriteVariableDeclaration(keyword, name string) *Writer {
-	return w.
+func (w *Writer) StartVariableDeclaration(keyword, name string) *Writer {
+	w.
+		out.
 		NewLine().
 		WriteKeyword(keyword).
 		WriteWhiteSpace().
-		Write(name).
+		WriteAs(name).
 		WriteWhiteSpace().
-		Write("=").
+		WriteAs("=").
 		WriteWhiteSpace()
-}
-
-func (w *Writer) WriteVariable(name string) *Writer {
-	return w.Write(name)
-}
-
-func (w *Writer) WriteReturn(input string) *Writer {
-	return w.NewLine().WriteKeyword(input).WriteWhiteSpace()
-}
-
-func (w *Writer) WriteLine(input string) *Writer {
-	return w.NewLine().Write(input)
-}
-
-func (w *Writer) NewLine() *Writer {
-	if w.buf.Len() == 0 {
-		return w
-	}
-
-	w.lines++
-
-	w.writeToken(NewLine)
-
-	//for i := uint64(0); i < w.opts.TabWidth; i++ {
-	//	w.WriteWhiteSpace()
-	//}
 
 	return w
 }
 
-func (w *Writer) WriteKeyword(word string) *Writer {
-	switch w.opts.CaseMode {
-	case CaseModeUpper:
-		word = strings.ToUpper(word)
-	case CaseModeLower:
-		word = strings.ToLower(word)
-	default:
-		break
-	}
+func (w *Writer) EndVariableDeclaration() *Writer {
+	w.out.NewLine()
 
-	return w.Write(word)
+	return w
 }
 
-func (w *Writer) WriteWhiteSpace() *Writer {
-	return w.writeToken(WhiteSpace)
+func (w *Writer) StartReturn(keyword string) *Writer {
+	if w.out.Lines() > 0 {
+		w.out.NewLine()
+	}
+
+	w.out.WriteKeyword(keyword).WriteWhiteSpace()
+
+	return w
+}
+
+func (w *Writer) EndReturn() *Writer {
+	//w.out.NewLine()
+
+	return w
+}
+
+func (w *Writer) WriteString(input string) *Writer {
+	w.out.WriteString(input)
+
+	return w
 }
 
 func (w *Writer) Write(input string) *Writer {
-	return w.writeToken(StringToken(input))
+	w.out.WriteAs(input)
+
+	return w
 }
 
 func (w *Writer) String() string {
-	return w.buf.String()
-}
-
-func (w *Writer) writeToken(input Token) *Writer {
-	if input != NewLine {
-		w.chars += 1
-	} else {
-		w.chars = 0
-	}
-
-	if w.scope == nil {
-		w.buf.WriteString(input.String())
-	} else {
-		w.scope.Write(input)
-	}
-
-	return w
-}
-
-func (w *Writer) startScope(f scopes.Factory) *Writer {
-	w.scope = f(w.buf)
-	w.scope.Start()
-
-	return w
-}
-
-func (w *Writer) endScope() *Writer {
-	w.scope.End()
-	w.scope = nil
-
-	return w
+	return w.out.String()
 }

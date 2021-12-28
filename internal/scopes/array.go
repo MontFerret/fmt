@@ -1,56 +1,69 @@
 package scopes
 
-import "bytes"
+import (
+	"github.com/MontFerret/fmt/internal/core"
+)
 
 type ArrayScope struct {
-	*BaseScope
-	bracketSpacing bool
+	buff        []core.OutputWriter
+	maxLineLen  int
+	currLineLen int
 }
 
-func NewArrayScope(out *bytes.Buffer, bracketSpacing bool) Scope {
+func NewArrayScope(maxLineLen uint64) core.Scope {
 	return &ArrayScope{
-		BaseScope: newBaseScope(out),
-		bracketSpacing: bracketSpacing,
+		buff:       make([]core.OutputWriter, 0, 10),
+		maxLineLen: int(maxLineLen),
 	}
 }
 
-func (s *ArrayScope) Start() Scope {
-	s.out.WriteString("[")
-
-	return s
+func (s *ArrayScope) Len() int {
+	return s.currLineLen
 }
 
-func (s *ArrayScope) Write(item ScopeItem) Scope {
-	s.BaseScope.Write(item)
-
-	return s
+func (s *ArrayScope) WriteToken(token core.Token) {
+	s.buff = append(s.buff, &tokenToOutput{token})
+	s.increaseLen(token)
 }
 
-func (s *ArrayScope) End() Scope {
-	size := len(s.items)
+func (s *ArrayScope) WriteScope(scope core.Scope) {
+	s.buff = append(s.buff, &scopeToOutput{scope})
+	s.increaseLen(scope)
+}
+
+func (s *ArrayScope) Read(out core.Output) {
+	out.Write(core.SBracketOpen)
+
+	size := len(s.buff)
 	last := size - 1
 
-	//if s.bracketSpacing && size > 0 {
-	//	s.out.WriteString(" ")
-	//}
+	withNewLine := s.maxLineLen > 0 && s.currLineLen >= s.maxLineLen
 
-	for i, item := range s.items {
-		s.out.WriteString(item.String())
+	if withNewLine {
+		out.AddTab().NewLine()
+	}
+
+	for i, item := range s.buff {
+		item.WriteTo(out)
 
 		if i != last {
-			s.out.WriteString(", ")
+			out.Write(core.Comma)
+
+			if withNewLine {
+				out.NewLine()
+			} else {
+				out.WriteWhiteSpace()
+			}
 		}
 	}
 
-	//if s.bracketSpacing && size > 0 {
-	//	s.out.WriteString(" ")
-	//}
+	if withNewLine {
+		out.RemoveTab().NewLine()
+	}
 
-	s.out.WriteString("]")
-
-	return s
+	out.Write(core.SBracketClose)
 }
 
-func (s *ArrayScope) String() string {
-	return s.out.String()
+func (s *ArrayScope) increaseLen(m core.Measurable) {
+	s.currLineLen += m.Len() + 2 // len + comma + white space
 }

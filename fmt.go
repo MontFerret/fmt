@@ -51,8 +51,8 @@ func (fmt *Formatter) Format(query string) (output string, err error) {
 	p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
 	p.AddErrorListener(&internal.ErrorListener{})
 
-	w := internal.NewWriter(fmt.opts)
-	l := internal.NewWalker(w)
+	w := internal.NewWriter(*fmt.opts)
+	l := internal.NewVisitor(w)
 	antlr.ParseTreeWalkerDefault.Walk(l, p.Program())
 
 	return w.String(), nil

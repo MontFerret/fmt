@@ -1,19 +1,21 @@
 package fmt
 
-import "github.com/MontFerret/fmt/internal"
+import (
+	"github.com/MontFerret/fmt/internal/core"
+)
 
 type (
-	Options = internal.Options
+	Options = core.Options
 
-	CaseMode = internal.CaseMode
+	CaseMode = core.CaseMode
 
 	Option func(opts *Options)
 )
 
 const (
-	CaseModeIgnore = internal.CaseModeIgnore
-	CaseModeUpper  = internal.CaseModeUpper
-	CaseModeLower  = internal.CaseModeLower
+	CaseModeIgnore = core.CaseModeIgnore
+	CaseModeUpper  = core.CaseModeUpper
+	CaseModeLower  = core.CaseModeLower
 )
 
 func DefaultOptions() *Options {
