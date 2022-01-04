@@ -18,6 +18,25 @@ func NewWriter(opts core.Options) *Writer {
 	}
 }
 
+func (w *Writer) StartFunctionCall(namespace []string, name string, errSup bool) *Writer {
+	w.out.StartScope(scopes.NewFunctionScope(
+		scopes.Options{
+			MaxLineLen: w.opts.PrintWidth,
+		},
+		namespace,
+		name,
+		errSup,
+	))
+
+	return w
+}
+
+func (w *Writer) EndFunctionCall() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
 func (w *Writer) StartArray() *Writer {
 	w.out.StartScope(scopes.NewArrayScope(
 		scopes.Options{

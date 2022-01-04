@@ -284,6 +284,25 @@ RETURN     a
 
 RETURN a`)
 				})
+
+				Convey("Of objects", func() {
+					f := fmt.New(fmt.WithPrintWidth(40))
+
+					out := f.MustFormat(`
+LET    a =     [{ a: 1, b:  { c: "d"  }  }, { a: 1, b:  { c: "d"  }  },   { a: 1, b:  { c: "d"  }  },   { a: 1, b:  { c: "d"  }  }]
+
+RETURN     a
+
+`)
+					So(out, ShouldEqual, `LET a = [
+    { a: 1, b: { c: "d" } },
+    { a: 1, b: { c: "d" } },
+    { a: 1, b: { c: "d" } },
+    { a: 1, b: { c: "d" } }
+]
+
+RETURN a`)
+				})
 			})
 
 			Convey("Object", func() {
@@ -428,19 +447,141 @@ RETURN a`)
 				})
 			})
 
-			SkipConvey("Functions", func() {
-				SkipConvey("Without arguments", func() {
-					f := fmt.New(fmt.WithSingleQuote(true))
+			Convey("Functions", func() {
+				Convey("Without arguments", func() {
+					Convey("Without namespace", func() {
+						f := fmt.New()
 
-					out := f.MustFormat(`
+						out := f.MustFormat(`
 LET    a =     FOO(   )
 
 RETURN     a
 
 `)
 
-					So(out, ShouldEqual, `LET a = FOO()
+						So(out, ShouldEqual, `LET a = FOO()
+
 RETURN a`)
+					})
+
+					Convey("With namespace", func() {
+						f := fmt.New()
+
+						out := f.MustFormat(`
+LET    a =  FOO:: BAR::   BAZ(   )
+
+RETURN     a
+
+`)
+
+						So(out, ShouldEqual, `LET a = FOO::BAR::BAZ()
+
+RETURN a`)
+					})
+
+					Convey("With error suppression", func() {
+						f := fmt.New()
+
+						out := f.MustFormat(`
+LET    a =  FOO:: BAR::   BAZ(   ) ?
+
+RETURN     a
+
+`)
+
+						So(out, ShouldEqual, `LET a = FOO::BAR::BAZ()?
+
+RETURN a`)
+					})
+				})
+
+				Convey("With arguments", func() {
+					Convey("Primitive types", func() {
+						f := fmt.New()
+
+						out := f.MustFormat(`
+LET    a =     FOO( TRUE, "FOO",   1 )
+
+RETURN     a
+
+`)
+
+						So(out, ShouldEqual, `LET a = FOO(TRUE, "FOO", 1)
+
+RETURN a`)
+					})
+
+					Convey("Complex types", func() {
+						f := fmt.New()
+
+						out := f.MustFormat(`
+LET    a =     FOO( [ 1, 2,  3,  4], { foo:     "bar", }   )
+
+RETURN     a
+
+`)
+
+						So(out, ShouldEqual, `LET a = FOO([1, 2, 3, 4], { foo: "bar" })
+
+RETURN a`)
+					})
+
+					Convey("Nested call", func() {
+						f := fmt.New()
+
+						out := f.MustFormat(`
+LET    a =     FOO( BAZ( [ 1, 2,  3,  4], { foo:     "bar", } ), GAZ()  )
+
+RETURN     a
+
+`)
+
+						So(out, ShouldEqual, `LET a = FOO(BAZ([1, 2, 3, 4], { foo: "bar" }), GAZ())
+
+RETURN a`)
+					})
+
+					Convey("Too long", func() {
+						f := fmt.New()
+
+						out := f.MustFormat(`
+LET    a =     FOO( 'Lorem ipsum dolor sit amet',        'Lorem ipsum dolor sit amet',     'Lorem ipsum dolor sit amet', 'Lorem ipsum dolor sit amet')
+
+RETURN     a
+
+`)
+
+						So(out, ShouldEqual, `LET a = FOO(
+    "Lorem ipsum dolor sit amet",
+    "Lorem ipsum dolor sit amet",
+    "Lorem ipsum dolor sit amet",
+    "Lorem ipsum dolor sit amet"
+)
+
+RETURN a`)
+					})
+
+					Convey("Too long nested", func() {
+						f := fmt.New()
+
+						out := f.MustFormat(`
+LET    a =     FOO( BAR('Lorem ipsum dolor sit amet',        'Lorem ipsum dolor sit amet',     'Lorem ipsum dolor sit amet', 'Lorem ipsum dolor sit amet')?)
+
+RETURN     a
+
+`)
+
+						So(out, ShouldEqual, `LET a = FOO(
+    BAR(
+        "Lorem ipsum dolor sit amet",
+        "Lorem ipsum dolor sit amet",
+        "Lorem ipsum dolor sit amet",
+        "Lorem ipsum dolor sit amet"
+    )?
+)
+
+RETURN a`)
+					})
 				})
 			})
 		})

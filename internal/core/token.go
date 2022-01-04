@@ -28,6 +28,8 @@ const (
 
 	Colon = StringToken(":")
 
+	QuestionMark = StringToken("?")
+
 	SBracketOpen = StringToken("[")
 
 	SBracketClose = StringToken("]")
@@ -35,6 +37,10 @@ const (
 	CBracketOpen = StringToken("{")
 
 	CBracketClose = StringToken("}")
+
+	RBracketOpen = StringToken("(")
+
+	RBracketClose = StringToken(")")
 )
 
 func (t StringToken) Len() int {

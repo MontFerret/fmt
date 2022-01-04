@@ -280,23 +280,29 @@ func (v *Visitor) EnterMemberExpressionSource(c *fql.MemberExpressionSourceConte
 }
 
 func (v *Visitor) EnterFunctionCallExpression(c *fql.FunctionCallExpressionContext) {
-	//TODO implement me
+	fc := c.FunctionCall().(*fql.FunctionCallContext)
 
+	ns := fc.Namespace().(*fql.NamespaceContext)
+	nsSegments := ns.AllNamespaceSegment()
+	namespace := make([]string, 0, len(nsSegments))
+
+	for _, seg := range nsSegments {
+		namespace = append(namespace, seg.GetText())
+	}
+
+	name := fc.FunctionName().GetText()
+	errSup := c.ErrorOperator() != nil
+
+	v.writer.StartFunctionCall(namespace, name, errSup)
 }
 
 func (v *Visitor) EnterFunctionCall(c *fql.FunctionCallContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterFunctionName(c *fql.FunctionNameContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterArgumentList(c *fql.ArgumentListContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterMemberExpressionPath(c *fql.MemberExpressionPathContext) {
@@ -633,8 +639,7 @@ func (v *Visitor) ExitMemberExpressionSource(c *fql.MemberExpressionSourceContex
 }
 
 func (v *Visitor) ExitFunctionCallExpression(c *fql.FunctionCallExpressionContext) {
-	//TODO implement me
-
+	v.writer.EndFunctionCall()
 }
 
 func (v *Visitor) ExitFunctionCall(c *fql.FunctionCallContext) {
