@@ -18,6 +18,49 @@ func NewWriter(opts core.Options) *Writer {
 	}
 }
 
+func (w *Writer) StartMember() *Writer {
+	w.out.StartScope(scopes.NewMemberScope(
+		scopes.Options{
+			MaxLineLen: w.opts.PrintWidth,
+		}),
+	)
+
+	return w
+}
+
+func (w *Writer) EndMember() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartPropertyName(name string, optional bool) *Writer {
+	w.out.Write(scopes.NewPropertyNameToken(name, optional))
+
+	return w
+}
+
+func (w *Writer) EndPropertyName() *Writer {
+	return w
+}
+
+func (w *Writer) StartComputedPropertyName(optional bool) *Writer {
+	w.out.StartScope(scopes.NewComputedPropertyNameScope(
+		scopes.Options{
+			MaxLineLen: w.opts.PrintWidth,
+		},
+		optional,
+	))
+
+	return w
+}
+
+func (w *Writer) EndComputedPropertyName() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
 func (w *Writer) StartFunctionCall(namespace []string, name string, errSup bool) *Writer {
 	w.out.StartScope(scopes.NewFunctionScope(
 		scopes.Options{
@@ -130,6 +173,12 @@ func (w *Writer) StartReturn(keyword string) *Writer {
 
 func (w *Writer) EndReturn() *Writer {
 	//w.out.NewLine()
+
+	return w
+}
+
+func (w *Writer) WriteParam(input string) *Writer {
+	w.out.Write(core.Param).WriteAs(input)
 
 	return w
 }

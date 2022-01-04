@@ -195,8 +195,7 @@ func (v *Visitor) EnterTimeoutClause(c *fql.TimeoutClauseContext) {
 }
 
 func (v *Visitor) EnterParam(c *fql.ParamContext) {
-	//TODO implement me
-
+	v.writer.WriteParam(c.Identifier().GetText())
 }
 
 func (v *Visitor) EnterVariable(c *fql.VariableContext) {
@@ -255,13 +254,9 @@ func (v *Visitor) EnterPropertyAssignment(c *fql.PropertyAssignmentContext) {
 }
 
 func (v *Visitor) EnterComputedPropertyName(c *fql.ComputedPropertyNameContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterPropertyName(c *fql.PropertyNameContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterNamespaceIdentifier(c *fql.NamespaceIdentifierContext) {
@@ -271,18 +266,25 @@ func (v *Visitor) EnterNamespace(c *fql.NamespaceContext) {
 }
 
 func (v *Visitor) EnterMemberExpression(c *fql.MemberExpressionContext) {
-	//TODO implement me
+	v.writer.StartMember()
 }
 
 func (v *Visitor) EnterMemberExpressionSource(c *fql.MemberExpressionSourceContext) {
-	//TODO implement me
-
+	if fc := c.FunctionCall(); fc != nil {
+		v.startFunctionCall(fc.(*fql.FunctionCallContext), false)
+	}
 }
 
 func (v *Visitor) EnterFunctionCallExpression(c *fql.FunctionCallExpressionContext) {
 	fc := c.FunctionCall().(*fql.FunctionCallContext)
 
-	ns := fc.Namespace().(*fql.NamespaceContext)
+	v.startFunctionCall(fc, c.ErrorOperator() != nil)
+}
+
+func (v *Visitor) EnterFunctionCall(c *fql.FunctionCallContext) {}
+
+func (v *Visitor) startFunctionCall(c *fql.FunctionCallContext, errSup bool) {
+	ns := c.Namespace().(*fql.NamespaceContext)
 	nsSegments := ns.AllNamespaceSegment()
 	namespace := make([]string, 0, len(nsSegments))
 
@@ -290,13 +292,9 @@ func (v *Visitor) EnterFunctionCallExpression(c *fql.FunctionCallExpressionConte
 		namespace = append(namespace, seg.GetText())
 	}
 
-	name := fc.FunctionName().GetText()
-	errSup := c.ErrorOperator() != nil
+	name := c.FunctionName().GetText()
 
 	v.writer.StartFunctionCall(namespace, name, errSup)
-}
-
-func (v *Visitor) EnterFunctionCall(c *fql.FunctionCallContext) {
 }
 
 func (v *Visitor) EnterFunctionName(c *fql.FunctionNameContext) {
@@ -306,8 +304,13 @@ func (v *Visitor) EnterArgumentList(c *fql.ArgumentListContext) {
 }
 
 func (v *Visitor) EnterMemberExpressionPath(c *fql.MemberExpressionPathContext) {
-	//TODO implement me
+	optional := c.ErrorOperator() != nil
 
+	if prop := c.PropertyName(); prop != nil {
+		v.writer.StartPropertyName(prop.(*fql.PropertyNameContext).Identifier().GetText(), optional)
+	} else {
+		v.writer.StartComputedPropertyName(optional)
+	}
 }
 
 func (v *Visitor) EnterSafeReservedWord(c *fql.SafeReservedWordContext) {
@@ -609,13 +612,9 @@ func (v *Visitor) ExitPropertyAssignment(c *fql.PropertyAssignmentContext) {
 }
 
 func (v *Visitor) ExitComputedPropertyName(c *fql.ComputedPropertyNameContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) ExitPropertyName(c *fql.PropertyNameContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) ExitNamespaceIdentifier(c *fql.NamespaceIdentifierContext) {
@@ -629,13 +628,13 @@ func (v *Visitor) ExitNamespace(c *fql.NamespaceContext) {
 }
 
 func (v *Visitor) ExitMemberExpression(c *fql.MemberExpressionContext) {
-	//TODO implement me
-
+	v.writer.EndMember()
 }
 
 func (v *Visitor) ExitMemberExpressionSource(c *fql.MemberExpressionSourceContext) {
-	//TODO implement me
-
+	if c.FunctionCall() != nil {
+		v.writer.EndFunctionCall()
+	}
 }
 
 func (v *Visitor) ExitFunctionCallExpression(c *fql.FunctionCallExpressionContext) {
@@ -658,8 +657,11 @@ func (v *Visitor) ExitArgumentList(c *fql.ArgumentListContext) {
 }
 
 func (v *Visitor) ExitMemberExpressionPath(c *fql.MemberExpressionPathContext) {
-	//TODO implement me
-
+	if c.PropertyName() != nil {
+		v.writer.EndPropertyName()
+	} else {
+		v.writer.EndComputedPropertyName()
+	}
 }
 
 func (v *Visitor) ExitSafeReservedWord(c *fql.SafeReservedWordContext) {

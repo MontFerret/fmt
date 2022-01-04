@@ -26,6 +26,8 @@ const (
 
 	Dot = StringToken(".")
 
+	Param = StringToken("@")
+
 	Colon = StringToken(":")
 
 	QuestionMark = StringToken("?")
