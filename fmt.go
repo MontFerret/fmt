@@ -5,10 +5,32 @@ import (
 	"github.com/MontFerret/fmt/internal"
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/pkg/errors"
+	"unicode"
 )
 
-type Formatter struct {
-	opts *Options
+type (
+	normalizer struct {
+		antlr.CharStream
+	}
+
+	Formatter struct {
+		opts *Options
+	}
+)
+
+func newNormalizer(in antlr.CharStream) *normalizer {
+	return &normalizer{in}
+}
+
+func (is *normalizer) LA(offset int) int {
+	in := is.CharStream.LA(offset)
+
+	if in < 0 {
+		// Such as antlr.TokenEOF which is -1
+		return in
+	}
+
+	return int(unicode.ToUpper(rune(in)))
 }
 
 func New(setters ...Option) *Formatter {
@@ -43,7 +65,7 @@ func (fmt *Formatter) Format(query string) (output string, err error) {
 	}()
 
 	input := antlr.NewInputStream(query)
-	lexer := fql.NewFqlLexer(input)
+	lexer := fql.NewFqlLexer(newNormalizer(input))
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 
 	p := fql.NewFqlParser(stream)

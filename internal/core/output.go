@@ -22,6 +22,7 @@ type (
 	Output interface {
 		StartScope(scope Scope) Output
 		EndScope() Output
+		Scopes() uint64
 		Len() uint64
 		Lines() uint64
 		AddTab() Output
@@ -81,6 +82,10 @@ func (o *OutputBuilder) EndScope() Output {
 	}
 
 	return o
+}
+
+func (o *OutputBuilder) Scopes() uint64 {
+	return uint64(len(o.scopes))
 }
 
 func (o *OutputBuilder) Len() uint64 {

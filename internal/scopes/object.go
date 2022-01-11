@@ -5,12 +5,12 @@ import (
 )
 
 type ObjectScope struct {
-	*baseScope
+	*Scope
 }
 
 func NewObjectScope(opts Options) core.Scope {
 	return &ObjectScope{
-		baseScope: newBaseScope(opts),
+		Scope: NewScope(opts),
 	}
 }
 

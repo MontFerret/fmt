@@ -5,21 +5,21 @@ import (
 )
 
 type PropertyAssignmentScope struct {
-	*baseScope
+	*Scope
 	name        string
 	isShorthand bool
 }
 
 func NewPropertyAssignmentScope(opts Options, name string, isShorthand bool) core.Scope {
 	return &PropertyAssignmentScope{
-		baseScope:   newBaseScope(opts),
+		Scope:       NewScope(opts),
 		name:        name,
 		isShorthand: isShorthand,
 	}
 }
 
 func (s *PropertyAssignmentScope) Len() int {
-	return len(s.name) + s.baseScope.Len()
+	return len(s.name) + s.Scope.Len()
 }
 
 func (s *PropertyAssignmentScope) WriteToken(token core.Token) {
@@ -27,7 +27,7 @@ func (s *PropertyAssignmentScope) WriteToken(token core.Token) {
 		return
 	}
 
-	s.baseScope.WriteToken(token)
+	s.Scope.WriteToken(token)
 }
 
 func (s *PropertyAssignmentScope) WriteScope(scope core.Scope) {
@@ -35,7 +35,7 @@ func (s *PropertyAssignmentScope) WriteScope(scope core.Scope) {
 		return
 	}
 
-	s.baseScope.WriteScope(scope)
+	s.Scope.WriteScope(scope)
 }
 
 func (s *PropertyAssignmentScope) Read(out core.Output) {

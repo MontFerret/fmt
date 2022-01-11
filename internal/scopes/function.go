@@ -3,7 +3,7 @@ package scopes
 import "github.com/MontFerret/fmt/internal/core"
 
 type FunctionScope struct {
-	*baseScope
+	*Scope
 	namespace []string
 	name      string
 	errSup    bool
@@ -11,7 +11,7 @@ type FunctionScope struct {
 
 func NewFunctionScope(opts Options, namespace []string, name string, errSup bool) core.Scope {
 	return &FunctionScope{
-		baseScope: newBaseScope(opts),
+		Scope:     NewScope(opts),
 		namespace: namespace,
 		name:      name,
 		errSup:    errSup,

@@ -14,33 +14,21 @@ func NewVisitor(writer *Writer) fql.FqlParserListener {
 }
 
 func (v *Visitor) VisitTerminal(node antlr.TerminalNode) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) VisitErrorNode(node antlr.ErrorNode) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterEveryRule(ctx antlr.ParserRuleContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) ExitEveryRule(ctx antlr.ParserRuleContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterProgram(c *fql.ProgramContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterHead(c *fql.HeadContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterUseExpression(c *fql.UseExpressionContext) {
@@ -54,16 +42,12 @@ func (v *Visitor) EnterUse(c *fql.UseContext) {
 }
 
 func (v *Visitor) EnterBody(c *fql.BodyContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterBodyStatement(c *fql.BodyStatementContext) {
-	//TODO implement me
 }
 
 func (v *Visitor) EnterBodyExpression(c *fql.BodyExpressionContext) {
-	//TODO implement me
 }
 
 func (v *Visitor) EnterVariableDeclaration(c *fql.VariableDeclarationContext) {
@@ -83,11 +67,30 @@ func (v *Visitor) EnterReturnExpression(c *fql.ReturnExpressionContext) {
 }
 
 func (v *Visitor) EnterForExpression(c *fql.ForExpressionContext) {
-	//TODO implement me
+	var keyVar string
+	var variant string
+
+	valVar := c.GetValueVariable().GetText()
+
+	if keyVarCtx := c.GetCounterVariable(); keyVarCtx != nil {
+		keyVar = keyVarCtx.GetText()
+	}
+
+	if c.In() != nil {
+		variant = "IN"
+	} else {
+		if c.Do() != nil {
+			variant = "DO WHILE"
+		} else {
+			variant = "WHILE"
+		}
+	}
+
+	v.writer.StartForExpression(c.For().GetText(), valVar, keyVar, variant)
 }
 
 func (v *Visitor) EnterForExpressionSource(c *fql.ForExpressionSourceContext) {
-	//TODO implement me
+	v.writer.StartForExpressionSource()
 }
 
 func (v *Visitor) EnterForExpressionClause(c *fql.ForExpressionClauseContext) {
@@ -314,87 +317,116 @@ func (v *Visitor) EnterMemberExpressionPath(c *fql.MemberExpressionPathContext) 
 }
 
 func (v *Visitor) EnterSafeReservedWord(c *fql.SafeReservedWordContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterUnsafReservedWord(c *fql.UnsafReservedWordContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterRangeOperator(c *fql.RangeOperatorContext) {
-	//TODO implement me
-
+	v.writer.StartRangeOperator()
 }
 
 func (v *Visitor) EnterRangeOperand(c *fql.RangeOperandContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterExpression(c *fql.ExpressionContext) {
-	//TODO implement me
-
+	if op := c.UnaryOperator(); op != nil {
+		v.writer.StartOperator(op.GetText())
+	} else if op := c.LogicalAndOperator(); op != nil {
+		v.writer.StartOperator(op.GetText())
+	} else if op := c.LogicalOrOperator(); op != nil {
+		v.writer.StartOperator(op.GetText())
+	} else if op := c.GetTernaryOperator(); op != nil {
+		v.writer.StartTernaryOperator()
+	}
 }
 
 func (v *Visitor) EnterPredicate(c *fql.PredicateContext) {
-	//TODO implement me
+	if op := c.EqualityOperator(); op != nil {
+		v.writer.StartOperator(op.GetText())
+	} else if op := c.ArrayOperator(); op != nil {
+		arrOp := op.(*fql.ArrayOperatorContext)
+		var subOpText string
+		var opText string
 
+		if subOp := arrOp.GetOperator(); subOp != nil {
+			subOpText = subOp.GetText()
+		}
+
+		if inOp := arrOp.InOperator(); inOp != nil {
+			opText = inOp.GetText()
+		} else {
+			opText = arrOp.EqualityOperator().GetText()
+		}
+
+		if subOpText == "" {
+			v.writer.StartOperator(opText)
+		} else {
+			v.writer.StartOperator(subOpText, opText)
+		}
+	} else if op := c.InOperator(); op != nil {
+		inOp := op.(*fql.InOperatorContext)
+		inToken := inOp.In().GetText()
+
+		if not := inOp.Not(); not != nil {
+			v.writer.StartOperator(not.GetText(), inToken)
+		} else {
+			v.writer.StartOperator(inToken)
+		}
+	} else if op := c.LikeOperator(); op != nil {
+		likeOp := op.(*fql.LikeOperatorContext)
+		likeToken := likeOp.Like().GetText()
+
+		if not := likeOp.Not(); not != nil {
+			v.writer.StartOperator(not.GetText(), likeToken)
+		} else {
+			v.writer.StartOperator(likeToken)
+		}
+	}
 }
 
 func (v *Visitor) EnterExpressionAtom(c *fql.ExpressionAtomContext) {
-	//TODO implement me
+	if paren := c.OpenParen(); paren != nil {
+		v.writer.StartGroup()
+	}
 
+	if op := c.MultiplicativeOperator(); op != nil {
+		v.writer.StartOperator(op.GetText())
+	} else if op := c.AdditiveOperator(); op != nil {
+		v.writer.StartOperator(op.GetText())
+	} else if op := c.RegexpOperator(); op != nil {
+		v.writer.StartOperator(op.GetText())
+	}
 }
 
 func (v *Visitor) EnterArrayOperator(c *fql.ArrayOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterEqualityOperator(c *fql.EqualityOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterInOperator(c *fql.InOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterLikeOperator(c *fql.LikeOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterUnaryOperator(c *fql.UnaryOperatorContext) {
-	v.writer.Write(c.GetText())
 }
 
 func (v *Visitor) EnterRegexpOperator(c *fql.RegexpOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterLogicalAndOperator(c *fql.LogicalAndOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterLogicalOrOperator(c *fql.LogicalOrOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterMultiplicativeOperator(c *fql.MultiplicativeOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterAdditiveOperator(c *fql.AdditiveOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) EnterErrorOperator(c *fql.ErrorOperatorContext) {
@@ -417,22 +449,18 @@ func (v *Visitor) ExitUseExpression(c *fql.UseExpressionContext) {
 }
 
 func (v *Visitor) ExitUse(c *fql.UseContext) {
-
 }
 
 func (v *Visitor) ExitBody(c *fql.BodyContext) {
 	//TODO implement me
-
 }
 
 func (v *Visitor) ExitBodyStatement(c *fql.BodyStatementContext) {
 	//TODO implement me
-
 }
 
 func (v *Visitor) ExitBodyExpression(c *fql.BodyExpressionContext) {
 	//TODO implement me
-
 }
 
 func (v *Visitor) ExitVariableDeclaration(c *fql.VariableDeclarationContext) {
@@ -441,17 +469,14 @@ func (v *Visitor) ExitVariableDeclaration(c *fql.VariableDeclarationContext) {
 
 func (v *Visitor) ExitReturnExpression(c *fql.ReturnExpressionContext) {
 	v.writer.EndReturn()
-
 }
 
 func (v *Visitor) ExitForExpression(c *fql.ForExpressionContext) {
-	//TODO implement me
-
+	v.writer.EndForExpression()
 }
 
 func (v *Visitor) ExitForExpressionSource(c *fql.ForExpressionSourceContext) {
-	//TODO implement me
-
+	v.writer.EndForExpressionSource()
 }
 
 func (v *Visitor) ExitForExpressionClause(c *fql.ForExpressionClauseContext) {
@@ -675,8 +700,7 @@ func (v *Visitor) ExitUnsafReservedWord(c *fql.UnsafReservedWordContext) {
 }
 
 func (v *Visitor) ExitRangeOperator(c *fql.RangeOperatorContext) {
-	//TODO implement me
-
+	v.writer.EndRangeOperator()
 }
 
 func (v *Visitor) ExitRangeOperand(c *fql.RangeOperandContext) {
@@ -685,18 +709,41 @@ func (v *Visitor) ExitRangeOperand(c *fql.RangeOperandContext) {
 }
 
 func (v *Visitor) ExitExpression(c *fql.ExpressionContext) {
-	//TODO implement me
-
+	if op := c.UnaryOperator(); op != nil {
+		v.writer.EndOperator()
+	} else if op := c.LogicalAndOperator(); op != nil {
+		v.writer.EndOperator()
+	} else if op := c.LogicalOrOperator(); op != nil {
+		v.writer.EndOperator()
+	} else if op := c.GetTernaryOperator(); op != nil {
+		v.writer.EndOperator()
+	}
 }
 
 func (v *Visitor) ExitPredicate(c *fql.PredicateContext) {
-	//TODO implement me
-
+	if op := c.EqualityOperator(); op != nil {
+		v.writer.EndOperator()
+	} else if op := c.ArrayOperator(); op != nil {
+		v.writer.EndOperator()
+	} else if op := c.InOperator(); op != nil {
+		v.writer.EndOperator()
+	} else if op := c.LikeOperator(); op != nil {
+		v.writer.EndOperator()
+	}
 }
 
 func (v *Visitor) ExitExpressionAtom(c *fql.ExpressionAtomContext) {
-	//TODO implement me
+	if op := c.MultiplicativeOperator(); op != nil {
+		v.writer.EndOperator()
+	} else if op := c.AdditiveOperator(); op != nil {
+		v.writer.EndOperator()
+	} else if op := c.RegexpOperator(); op != nil {
+		v.writer.EndOperator()
+	}
 
+	if paren := c.CloseParen(); paren != nil {
+		v.writer.EndGroup()
+	}
 }
 
 func (v *Visitor) ExitArrayOperator(c *fql.ArrayOperatorContext) {
@@ -720,8 +767,6 @@ func (v *Visitor) ExitLikeOperator(c *fql.LikeOperatorContext) {
 }
 
 func (v *Visitor) ExitUnaryOperator(c *fql.UnaryOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) ExitRegexpOperator(c *fql.RegexpOperatorContext) {
@@ -730,26 +775,16 @@ func (v *Visitor) ExitRegexpOperator(c *fql.RegexpOperatorContext) {
 }
 
 func (v *Visitor) ExitLogicalAndOperator(c *fql.LogicalAndOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) ExitLogicalOrOperator(c *fql.LogicalOrOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) ExitMultiplicativeOperator(c *fql.MultiplicativeOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) ExitAdditiveOperator(c *fql.AdditiveOperatorContext) {
-	//TODO implement me
-
 }
 
 func (v *Visitor) ExitErrorOperator(c *fql.ErrorOperatorContext) {
-	//TODO implement me
-
 }

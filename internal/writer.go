@@ -18,12 +18,38 @@ func NewWriter(opts core.Options) *Writer {
 	}
 }
 
+func (w *Writer) StartForExpression(keyword, valVar, keyVar, variant string) *Writer {
+	w.out.StartScope(scopes.NewForExpressionScope(
+		w.toScopeOptions(),
+		keyword,
+		valVar,
+		keyVar,
+		variant,
+	))
+
+	return w
+}
+
+func (w *Writer) EndForExpression() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartForExpressionSource() *Writer {
+	w.out.StartScope(scopes.NewScope(w.toScopeOptions()))
+
+	return w
+}
+
+func (w *Writer) EndForExpressionSource() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
 func (w *Writer) StartMember() *Writer {
-	w.out.StartScope(scopes.NewMemberScope(
-		scopes.Options{
-			MaxLineLen: w.opts.PrintWidth,
-		}),
-	)
+	w.out.StartScope(scopes.NewMemberScope(w.toScopeOptions()))
 
 	return w
 }
@@ -46,9 +72,7 @@ func (w *Writer) EndPropertyName() *Writer {
 
 func (w *Writer) StartComputedPropertyName(optional bool) *Writer {
 	w.out.StartScope(scopes.NewComputedPropertyNameScope(
-		scopes.Options{
-			MaxLineLen: w.opts.PrintWidth,
-		},
+		w.toScopeOptions(),
 		optional,
 	))
 
@@ -63,9 +87,7 @@ func (w *Writer) EndComputedPropertyName() *Writer {
 
 func (w *Writer) StartFunctionCall(namespace []string, name string, errSup bool) *Writer {
 	w.out.StartScope(scopes.NewFunctionScope(
-		scopes.Options{
-			MaxLineLen: w.opts.PrintWidth,
-		},
+		w.toScopeOptions(),
 		namespace,
 		name,
 		errSup,
@@ -81,11 +103,7 @@ func (w *Writer) EndFunctionCall() *Writer {
 }
 
 func (w *Writer) StartArray() *Writer {
-	w.out.StartScope(scopes.NewArrayScope(
-		scopes.Options{
-			MaxLineLen: w.opts.PrintWidth,
-		},
-	))
+	w.out.StartScope(scopes.NewArrayScope(w.toScopeOptions()))
 
 	return w
 }
@@ -97,11 +115,7 @@ func (w *Writer) EndArray() *Writer {
 }
 
 func (w *Writer) StartObject() *Writer {
-	w.out.StartScope(scopes.NewObjectScope(
-		scopes.Options{
-			MaxLineLen: w.opts.PrintWidth,
-		},
-	))
+	w.out.StartScope(scopes.NewObjectScope(w.toScopeOptions()))
 
 	return w
 }
@@ -114,9 +128,7 @@ func (w *Writer) EndObject() *Writer {
 
 func (w *Writer) StartPropertyAssignment(name string, isShorthand bool) *Writer {
 	w.out.StartScope(scopes.NewPropertyAssignmentScope(
-		scopes.Options{
-			MaxLineLen: w.opts.PrintWidth,
-		},
+		w.toScopeOptions(),
 		name,
 		isShorthand,
 	))
@@ -162,17 +174,79 @@ func (w *Writer) EndVariableDeclaration() *Writer {
 }
 
 func (w *Writer) StartReturn(keyword string) *Writer {
-	if w.out.Lines() > 0 {
+	if w.out.Scopes() == 0 {
 		w.out.NewLine()
 	}
 
-	w.out.WriteKeyword(keyword).WriteWhiteSpace()
+	w.out.StartScope(scopes.NewReturnExpressionScope(w.toScopeOptions(), keyword))
 
 	return w
 }
 
 func (w *Writer) EndReturn() *Writer {
-	//w.out.NewLine()
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartTernaryOperator() *Writer {
+	w.out.StartScope(scopes.NewTernaryOperatorScope(w.toScopeOptions()))
+
+	return w
+}
+
+func (w *Writer) EndTernaryOperator() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartRangeOperator() *Writer {
+	w.out.StartScope(scopes.NewRangeOperatorScope(w.toScopeOptions()))
+
+	return w
+}
+
+func (w *Writer) EndRangeOperator() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartOperator(tokens ...string) *Writer {
+	var token core.Token
+
+	if len(tokens) > 1 {
+		arr := make([]core.Token, 0, len(tokens))
+
+		for _, t := range tokens {
+			arr = append(arr, core.StringToken(t))
+		}
+
+		token = core.NewGroupToken(arr...)
+	} else {
+		token = core.StringToken(tokens[0])
+	}
+
+	w.out.StartScope(scopes.NewOperatorScope(w.toScopeOptions(), token))
+
+	return w
+}
+
+func (w *Writer) EndOperator() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartGroup() *Writer {
+	w.out.StartScope(scopes.NewGroupScope(w.toScopeOptions()))
+
+	return w
+}
+
+func (w *Writer) EndGroup() *Writer {
+	w.out.EndScope()
 
 	return w
 }
@@ -197,4 +271,10 @@ func (w *Writer) Write(input string) *Writer {
 
 func (w *Writer) String() string {
 	return w.out.String()
+}
+
+func (w *Writer) toScopeOptions() scopes.Options {
+	return scopes.Options{
+		MaxLineLen: w.opts.PrintWidth,
+	}
 }

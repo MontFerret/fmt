@@ -7,42 +7,43 @@ type (
 		MaxLineLen uint64
 	}
 
-	baseScope struct {
+	Scope struct {
 		opts    Options
 		buff    []core.OutputWriter
 		lineLen uint64
 	}
 )
 
-func newBaseScope(opts Options) *baseScope {
-	return &baseScope{
+func NewScope(opts Options) *Scope {
+	return &Scope{
 		opts: opts,
 		buff: make([]core.OutputWriter, 0, 10),
 	}
 }
 
-func (b *baseScope) Len() int {
-	return int(b.lineLen)
+func (s *Scope) Len() int {
+	return int(s.lineLen)
 }
 
-func (b *baseScope) WriteToken(token core.Token) {
-	b.write(&tokenToOutput{token}, token.Len())
+func (s *Scope) WriteToken(token core.Token) {
+	s.write(&tokenToOutput{token}, token.Len())
 }
 
-func (b *baseScope) WriteScope(scope core.Scope) {
-	b.write(&scopeToOutput{scope}, scope.Len())
+func (s *Scope) WriteScope(scope core.Scope) {
+	s.write(&scopeToOutput{scope}, scope.Len())
 }
 
-func (b *baseScope) Read(_ core.Output) {
-	//TODO implement me
-	panic("implement me")
+func (s *Scope) Read(out core.Output) {
+	for _, tkn := range s.buff {
+		tkn.WriteTo(out)
+	}
 }
 
-func (b *baseScope) write(item core.OutputWriter, length int) {
-	b.buff = append(b.buff, item)
-	b.lineLen += uint64(length) + 2 // len + comma + white space
+func (s *Scope) write(item core.OutputWriter, length int) {
+	s.buff = append(s.buff, item)
+	s.lineLen += uint64(length) + 2 // len + comma + white space
 }
 
-func (b *baseScope) useNewLine() bool {
-	return b.opts.MaxLineLen > 0 && b.lineLen >= b.opts.MaxLineLen
+func (s *Scope) useNewLine() bool {
+	return s.opts.MaxLineLen > 0 && s.lineLen >= s.opts.MaxLineLen
 }

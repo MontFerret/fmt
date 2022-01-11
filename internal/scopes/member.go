@@ -4,7 +4,7 @@ import "github.com/MontFerret/fmt/internal/core"
 
 type (
 	MemberScope struct {
-		*baseScope
+		*Scope
 	}
 
 	PropertyNameToken struct {
@@ -13,7 +13,7 @@ type (
 	}
 
 	ComputedPropertyNameScope struct {
-		*baseScope
+		*Scope
 		optional bool
 	}
 )
@@ -42,8 +42,8 @@ func (p *PropertyNameToken) String() string {
 
 func NewComputedPropertyNameScope(opts Options, optional bool) core.Scope {
 	return &ComputedPropertyNameScope{
-		baseScope: newBaseScope(opts),
-		optional:  optional,
+		Scope:    NewScope(opts),
+		optional: optional,
 	}
 }
 
@@ -63,7 +63,7 @@ func (s *ComputedPropertyNameScope) Read(out core.Output) {
 
 func NewMemberScope(opts Options) core.Scope {
 	return &MemberScope{
-		baseScope: newBaseScope(opts),
+		Scope: NewScope(opts),
 	}
 }
 
