@@ -19,7 +19,8 @@ type (
 	StringToken string
 
 	GroupToken struct {
-		tokens []Token
+		tokens    []Token
+		separator Token
 	}
 )
 
@@ -61,8 +62,8 @@ func (t StringToken) String() string {
 	return string(t)
 }
 
-func NewGroupToken(tokens ...Token) Token {
-	return &GroupToken{tokens}
+func NewGroupToken(tokens []Token, separator Token) Token {
+	return &GroupToken{tokens, separator}
 }
 
 func (g *GroupToken) Len() int {
@@ -80,7 +81,7 @@ func (g *GroupToken) String() string {
 
 	for i, token := range g.tokens {
 		if i > 0 {
-			b.WriteString(WhiteSpace.String())
+			b.WriteString(g.separator.String())
 		}
 
 		b.WriteString(token.String())

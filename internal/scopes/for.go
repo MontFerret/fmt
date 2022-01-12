@@ -49,6 +49,11 @@ func (s *ForExpressionScope) Read(out core.Output) {
 	ret := s.buff[retIdx:][0]
 
 	out.NewLine()
+
+	//if hasBody {
+	//	out.NewLine()
+	//}
+
 	ret.WriteTo(out)
 	out.RemoveTab()
 }

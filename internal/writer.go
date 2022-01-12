@@ -18,6 +18,47 @@ func NewWriter(opts core.Options) *Writer {
 	}
 }
 
+func (w *Writer) StartLimitClause(keyword, offset, count string) *Writer {
+	w.out.StartScope(scopes.NewLimitClauseScope(
+		w.toScopeOptions(),
+		keyword,
+		offset,
+		count,
+	))
+
+	return w
+}
+
+func (w *Writer) EndLimitClause() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartForExpressionBody() *Writer {
+	w.out.StartScope(scopes.NewScope(w.toScopeOptions()))
+
+	return w
+}
+
+func (w *Writer) EndForExpressionBody() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartForExpressionSource() *Writer {
+	w.out.StartScope(scopes.NewScope(w.toScopeOptions()))
+
+	return w
+}
+
+func (w *Writer) EndForExpressionSource() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
 func (w *Writer) StartForExpression(keyword, valVar, keyVar, variant string) *Writer {
 	w.out.StartScope(scopes.NewForExpressionScope(
 		w.toScopeOptions(),
@@ -31,18 +72,6 @@ func (w *Writer) StartForExpression(keyword, valVar, keyVar, variant string) *Wr
 }
 
 func (w *Writer) EndForExpression() *Writer {
-	w.out.EndScope()
-
-	return w
-}
-
-func (w *Writer) StartForExpressionSource() *Writer {
-	w.out.StartScope(scopes.NewScope(w.toScopeOptions()))
-
-	return w
-}
-
-func (w *Writer) EndForExpressionSource() *Writer {
 	w.out.EndScope()
 
 	return w
@@ -223,7 +252,7 @@ func (w *Writer) StartOperator(tokens ...string) *Writer {
 			arr = append(arr, core.StringToken(t))
 		}
 
-		token = core.NewGroupToken(arr...)
+		token = core.NewGroupToken(arr, core.WhiteSpace)
 	} else {
 		token = core.StringToken(tokens[0])
 	}

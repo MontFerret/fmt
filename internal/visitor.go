@@ -103,8 +103,7 @@ func (v *Visitor) EnterForExpressionStatement(c *fql.ForExpressionStatementConte
 }
 
 func (v *Visitor) EnterForExpressionBody(c *fql.ForExpressionBodyContext) {
-	//TODO implement me
-
+	v.writer.StartForExpressionBody()
 }
 
 func (v *Visitor) EnterForExpressionReturn(c *fql.ForExpressionReturnContext) {
@@ -118,8 +117,19 @@ func (v *Visitor) EnterFilterClause(c *fql.FilterClauseContext) {
 }
 
 func (v *Visitor) EnterLimitClause(c *fql.LimitClauseContext) {
-	//TODO implement me
+	var offset string
+	var count string
 
+	values := c.AllLimitClauseValue()
+
+	if len(values) > 1 {
+		offset = values[0].GetText()
+		count = values[1].GetText()
+	} else {
+		count = values[1].GetText()
+	}
+
+	v.writer.StartLimitClause(c.Limit().GetText(), offset, count)
 }
 
 func (v *Visitor) EnterLimitClauseValue(c *fql.LimitClauseValueContext) {
@@ -490,8 +500,7 @@ func (v *Visitor) ExitForExpressionStatement(c *fql.ForExpressionStatementContex
 }
 
 func (v *Visitor) ExitForExpressionBody(c *fql.ForExpressionBodyContext) {
-	//TODO implement me
-
+	v.writer.EndForExpressionBody()
 }
 
 func (v *Visitor) ExitForExpressionReturn(c *fql.ForExpressionReturnContext) {
@@ -505,8 +514,7 @@ func (v *Visitor) ExitFilterClause(c *fql.FilterClauseContext) {
 }
 
 func (v *Visitor) ExitLimitClause(c *fql.LimitClauseContext) {
-	//TODO implement me
-
+	v.writer.EndLimitClause()
 }
 
 func (v *Visitor) ExitLimitClauseValue(c *fql.LimitClauseValueContext) {
