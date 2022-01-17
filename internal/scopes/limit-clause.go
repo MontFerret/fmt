@@ -7,25 +7,27 @@ import (
 type LimitClauseScope struct {
 	*Scope
 	keyword string
-	offset  string
-	count   string
 }
 
-func NewLimitClauseScope(opts Options, keyword, offset, count string) core.Scope {
+func NewLimitClauseScope(opts Options, keyword string) core.Scope {
 	return &LimitClauseScope{
 		Scope:   NewScope(opts),
 		keyword: keyword,
-		offset:  offset,
-		count:   count,
 	}
 }
 
 func (s *LimitClauseScope) Read(out core.Output) {
 	out.WriteKeyword(s.keyword).WriteWhiteSpace()
 
-	if s.offset != "" {
-		out.WriteAs(s.offset).Write(core.Comma).WriteWhiteSpace()
-	}
+	if len(s.buff) > 1 {
+		offset := s.buff[0]
+		offset.WriteTo(out)
+		out.Write(core.Comma).WriteWhiteSpace()
 
-	out.WriteAs(s.count)
+		count := s.buff[1]
+		count.WriteTo(out)
+	} else {
+		count := s.buff[0]
+		count.WriteTo(out)
+	}
 }

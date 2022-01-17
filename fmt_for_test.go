@@ -22,16 +22,44 @@ FOR   foo IN     1..10      RETURN foo*2
 			})
 
 			Convey("With LIMIT", func() {
-				f := fmt.New()
+				Convey("Primitive", func() {
+					f := fmt.New()
 
-				out := f.MustFormat(`
+					out := f.MustFormat(`
 FOR   foo IN     GET_DATA() LIMIT 1,    2      RETURN foo*2
 
 `)
 
-				So(out, ShouldEqual, `FOR foo IN GET_DATA()
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
     LIMIT 1, 2
     RETURN foo * 2`)
+				})
+
+				Convey("Param", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() LIMIT @  skip,    @take      RETURN foo*2
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    LIMIT @skip, @take
+    RETURN foo * 2`)
+				})
+
+				Convey("Func", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() LIMIT SKIP( 11,  [  1]),    @take      RETURN foo*2
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    LIMIT SKIP(11, [1]), @take
+    RETURN foo * 2`)
+				})
 			})
 		})
 	})

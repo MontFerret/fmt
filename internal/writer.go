@@ -18,12 +18,10 @@ func NewWriter(opts core.Options) *Writer {
 	}
 }
 
-func (w *Writer) StartLimitClause(keyword, offset, count string) *Writer {
+func (w *Writer) StartLimitClause(keyword string) *Writer {
 	w.out.StartScope(scopes.NewLimitClauseScope(
 		w.toScopeOptions(),
 		keyword,
-		offset,
-		count,
 	))
 
 	return w
@@ -281,7 +279,7 @@ func (w *Writer) EndGroup() *Writer {
 }
 
 func (w *Writer) WriteParam(input string) *Writer {
-	w.out.Write(core.Param).WriteAs(input)
+	w.out.Write(core.Param + core.StringToken(input))
 
 	return w
 }

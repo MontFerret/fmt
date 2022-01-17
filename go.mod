@@ -3,8 +3,8 @@ module github.com/MontFerret/fmt
 go 1.17
 
 require (
-	github.com/MontFerret/ferret v0.16.3
-	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20211226235153-13a0add2f557
+	github.com/MontFerret/ferret v0.16.5
+	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220111164937-1b144fa7b40f
 	github.com/pkg/errors v0.9.1
 	github.com/smartystreets/goconvey v1.7.2
 )

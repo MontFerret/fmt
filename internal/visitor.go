@@ -117,24 +117,12 @@ func (v *Visitor) EnterFilterClause(c *fql.FilterClauseContext) {
 }
 
 func (v *Visitor) EnterLimitClause(c *fql.LimitClauseContext) {
-	var offset string
-	var count string
-
-	values := c.AllLimitClauseValue()
-
-	if len(values) > 1 {
-		offset = values[0].GetText()
-		count = values[1].GetText()
-	} else {
-		count = values[1].GetText()
-	}
-
-	v.writer.StartLimitClause(c.Limit().GetText(), offset, count)
+	v.writer.StartLimitClause(c.Limit().GetText())
 }
 
 func (v *Visitor) EnterLimitClauseValue(c *fql.LimitClauseValueContext) {
 	//TODO implement me
-
+	print("EnterLimitClauseValue")
 }
 
 func (v *Visitor) EnterSortClause(c *fql.SortClauseContext) {
@@ -329,7 +317,7 @@ func (v *Visitor) EnterMemberExpressionPath(c *fql.MemberExpressionPathContext) 
 func (v *Visitor) EnterSafeReservedWord(c *fql.SafeReservedWordContext) {
 }
 
-func (v *Visitor) EnterUnsafReservedWord(c *fql.UnsafReservedWordContext) {
+func (v *Visitor) EnterUnsafeReservedWord(c *fql.UnsafeReservedWordContext) {
 }
 
 func (v *Visitor) EnterRangeOperator(c *fql.RangeOperatorContext) {
@@ -702,7 +690,7 @@ func (v *Visitor) ExitSafeReservedWord(c *fql.SafeReservedWordContext) {
 
 }
 
-func (v *Visitor) ExitUnsafReservedWord(c *fql.UnsafReservedWordContext) {
+func (v *Visitor) ExitUnsafeReservedWord(c *fql.UnsafeReservedWordContext) {
 	//TODO implement me
 
 }
