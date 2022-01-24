@@ -21,6 +21,25 @@ FOR   foo IN     1..10      RETURN foo*2
     RETURN foo * 2`)
 			})
 
+			Convey("With FOR body", func() {
+				f := fmt.New()
+
+				out := f.MustFormat(`
+FOR link IN links
+NAVIGATE(doc, link,   20000)
+WAIT_ELEMENT(doc, '.c-entry-content', 15000)
+LET texter      = ELEMENT(doc,    '.c-entry-content')
+    RETURN texter.innerText
+`)
+
+				So(out, ShouldEqual, `FOR link IN links
+    NAVIGATE(doc, link, 20000)
+    WAIT_ELEMENT(doc, ".c-entry-content", 15000)
+    LET texter = ELEMENT(doc, ".c-entry-content")
+
+    RETURN texter.innerText`)
+			})
+
 			Convey("With LIMIT", func() {
 				Convey("Primitive", func() {
 					f := fmt.New()
@@ -59,6 +78,86 @@ FOR   foo IN     GET_DATA() LIMIT SKIP( 11,  [  1]),    @take      RETURN foo*2
 					So(out, ShouldEqual, `FOR foo IN GET_DATA()
     LIMIT SKIP(11, [1]), @take
     RETURN foo * 2`)
+				})
+			})
+
+			Convey("With SORT", func() {
+				Convey("Singular", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() SORT    foo.bar     RETURN foo.id
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    SORT foo.bar
+    RETURN foo.id`)
+				})
+
+				Convey("Singular with direction", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() SORT    foo.bar    ASC    RETURN foo.id
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    SORT foo.bar ASC
+    RETURN foo.id`)
+				})
+
+				Convey("Plural", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() SORT    foo.bar,     foo.baz    RETURN foo.id
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    SORT foo.bar, foo.baz
+    RETURN foo.id`)
+				})
+
+				Convey("Plural with singular direction (left)", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() SORT    foo.bar     ASC,     foo.baz    RETURN foo.id
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    SORT foo.bar ASC, foo.baz
+    RETURN foo.id`)
+				})
+
+				Convey("Plural with singular direction (right)", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() SORT    foo.bar     ,     foo.baz  ASC  RETURN foo.id
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    SORT foo.bar, foo.baz ASC
+    RETURN foo.id`)
+				})
+
+				Convey("Plural with plural direction", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() SORT    foo.bar     ASC,     foo.baz    DESC    RETURN foo.id
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    SORT foo.bar ASC, foo.baz DESC
+    RETURN foo.id`)
 				})
 			})
 		})

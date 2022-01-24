@@ -18,6 +18,36 @@ func NewWriter(opts core.Options) *Writer {
 	}
 }
 
+func (w *Writer) StartSortClauseExpression(direction string) *Writer {
+	w.out.StartScope(scopes.NewSortClauseExpressionScope(
+		w.toScopeOptions(),
+		direction,
+	))
+
+	return w
+}
+
+func (w *Writer) EndSortClauseExpression() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
+func (w *Writer) StartSortClause(keyword string) *Writer {
+	w.out.StartScope(scopes.NewSortClauseScope(
+		w.toScopeOptions(),
+		keyword,
+	))
+
+	return w
+}
+
+func (w *Writer) EndSortClause() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
 func (w *Writer) StartLimitClause(keyword string) *Writer {
 	w.out.StartScope(scopes.NewLimitClauseScope(
 		w.toScopeOptions(),

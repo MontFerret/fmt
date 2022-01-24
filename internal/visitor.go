@@ -121,18 +121,20 @@ func (v *Visitor) EnterLimitClause(c *fql.LimitClauseContext) {
 }
 
 func (v *Visitor) EnterLimitClauseValue(c *fql.LimitClauseValueContext) {
-	//TODO implement me
-	print("EnterLimitClauseValue")
 }
 
 func (v *Visitor) EnterSortClause(c *fql.SortClauseContext) {
-	//TODO implement me
-
+	v.writer.StartSortClause(c.Sort().GetText())
 }
 
 func (v *Visitor) EnterSortClauseExpression(c *fql.SortClauseExpressionContext) {
-	//TODO implement me
+	var direction string
 
+	if sd := c.SortDirection(); sd != nil {
+		direction = sd.GetText()
+	}
+
+	v.writer.StartSortClauseExpression(direction)
 }
 
 func (v *Visitor) EnterCollectClause(c *fql.CollectClauseContext) {
@@ -511,13 +513,11 @@ func (v *Visitor) ExitLimitClauseValue(c *fql.LimitClauseValueContext) {
 }
 
 func (v *Visitor) ExitSortClause(c *fql.SortClauseContext) {
-	//TODO implement me
-
+	v.writer.EndSortClause()
 }
 
 func (v *Visitor) ExitSortClauseExpression(c *fql.SortClauseExpressionContext) {
-	//TODO implement me
-
+	v.writer.EndSortClauseExpression()
 }
 
 func (v *Visitor) ExitCollectClause(c *fql.CollectClauseContext) {
