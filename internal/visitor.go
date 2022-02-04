@@ -112,8 +112,7 @@ func (v *Visitor) EnterForExpressionReturn(c *fql.ForExpressionReturnContext) {
 }
 
 func (v *Visitor) EnterFilterClause(c *fql.FilterClauseContext) {
-	//TODO implement me
-
+	v.writer.StartFilterClause(c.Filter().GetText())
 }
 
 func (v *Visitor) EnterLimitClause(c *fql.LimitClauseContext) {
@@ -499,8 +498,7 @@ func (v *Visitor) ExitForExpressionReturn(c *fql.ForExpressionReturnContext) {
 }
 
 func (v *Visitor) ExitFilterClause(c *fql.FilterClauseContext) {
-	//TODO implement me
-
+	v.writer.EndFilterClause()
 }
 
 func (v *Visitor) ExitLimitClause(c *fql.LimitClauseContext) {

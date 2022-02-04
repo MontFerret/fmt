@@ -3,13 +3,18 @@ package scopes
 import "github.com/MontFerret/fmt/internal/core"
 
 type (
+	measurableOutputWriter interface {
+		core.OutputWriter
+		core.Measurable
+	}
+
 	Options struct {
 		MaxLineLen uint64
 	}
 
 	Scope struct {
 		opts    Options
-		buff    []core.OutputWriter
+		buff    []measurableOutputWriter
 		lineLen uint64
 	}
 )
@@ -17,7 +22,7 @@ type (
 func NewScope(opts Options) *Scope {
 	return &Scope{
 		opts: opts,
-		buff: make([]core.OutputWriter, 0, 10),
+		buff: make([]measurableOutputWriter, 0, 10),
 	}
 }
 
@@ -26,11 +31,11 @@ func (s *Scope) Len() int {
 }
 
 func (s *Scope) WriteToken(token core.Token) {
-	s.write(&tokenToOutput{token}, token.Len())
+	s.write(&tokenToOutput{token})
 }
 
 func (s *Scope) WriteScope(scope core.Scope) {
-	s.write(&scopeToOutput{scope}, scope.Len())
+	s.write(&scopeToOutput{scope})
 }
 
 func (s *Scope) Read(out core.Output) {
@@ -39,9 +44,9 @@ func (s *Scope) Read(out core.Output) {
 	}
 }
 
-func (s *Scope) write(item core.OutputWriter, length int) {
+func (s *Scope) write(item measurableOutputWriter) {
 	s.buff = append(s.buff, item)
-	s.lineLen += uint64(length) + 2 // len + comma + white space
+	s.lineLen += uint64(item.Len())
 }
 
 func (s *Scope) useNewLine() bool {

@@ -18,6 +18,18 @@ func NewWriter(opts core.Options) *Writer {
 	}
 }
 
+func (w *Writer) StartFilterClause(keyword string) *Writer {
+	w.out.StartScope(scopes.NewClauseScope(w.toScopeOptions(), keyword))
+
+	return w
+}
+
+func (w *Writer) EndFilterClause() *Writer {
+	w.out.EndScope()
+
+	return w
+}
+
 func (w *Writer) StartSortClauseExpression(direction string) *Writer {
 	w.out.StartScope(scopes.NewSortClauseExpressionScope(
 		w.toScopeOptions(),

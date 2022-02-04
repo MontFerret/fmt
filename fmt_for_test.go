@@ -160,6 +160,48 @@ FOR   foo IN     GET_DATA() SORT    foo.bar     ASC,     foo.baz    DESC    RETU
     RETURN foo.id`)
 				})
 			})
+
+			Convey("With FILTER", func() {
+				Convey("Singular", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() FILTER    foo.bar >   1    RETURN foo.id
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    FILTER foo.bar > 1
+    RETURN foo.id`)
+				})
+
+				Convey("Multiple one-line", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() FILTER    foo.bar >   1    AND foo.baz <    2   RETURN foo.id
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    FILTER foo.bar > 1 AND foo.baz < 2
+    RETURN foo.id`)
+				})
+
+				Convey("Multiple multi-line", func() {
+					f := fmt.New()
+
+					out := f.MustFormat(`
+FOR   foo IN     GET_DATA() FILTER    foo.bar >   1    FILTER    foo.baz <    2   RETURN foo.id
+
+`)
+
+					So(out, ShouldEqual, `FOR foo IN GET_DATA()
+    FILTER foo.bar > 1
+    FILTER foo.baz < 2
+    RETURN foo.id`)
+				})
+			})
 		})
 	})
 }
